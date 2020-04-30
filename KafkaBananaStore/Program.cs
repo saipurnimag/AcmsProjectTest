@@ -5,26 +5,28 @@ using Confluent.Kafka;
 
 namespace KafkaBananaStore
 {
-    class Program  
+    class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            var config = new ProducerConfig {BootstrapServers = "localhost:9092"};
-            Action <DeliveryReport<Null,string>> handler = r => 
-                Console.WriteLine(!r.Error.IsError 
-                ? $"Delivered Message to {r.TopicPartitionOffset}"
-                : $"Delivery Error: {r.Error.Reason}");
+            var conf = new ProducerConfig { BootstrapServers = "localhost:9092" };
 
-            using ( var producer = new ProducerBuilder<Null, string>(config).Build()){
-                for (int i=0; i<100; ++i)
+            Action<DeliveryReport<Null, string>> handler = r =>
+                Console.WriteLine(!r.Error.IsError
+                    ? $"Delivered message to {r.TopicPartitionOffset}"
+                    : $"Delivery Error: {r.Error.Reason}");
+
+            using (var p = new ProducerBuilder<Null, string>(conf).Build())
+            {
+                for (int i = 0; i < 100; ++i)
                 {
-                    producer.Produce("my-topic", new Message<Null, string> { Value = i.ToString() }, handler);
+                    P obj = new P();
+                    p.Produce("order-confirmed", new Message<Null, string>{Value = obj.createJSON(i)}, handler);
                 }
 
                 // wait for up to 10 seconds for any inflight messages to be delivered.
-                producer.Flush(TimeSpan.FromSeconds(10));
+                p.Flush(TimeSpan.FromSeconds(10));
             }
-            
         }
     }
 }
