@@ -18,10 +18,12 @@ namespace KafkaBananaStore
 
             using (var p = new ProducerBuilder<Null, string>(conf).Build())
             {
-                for (int i = 0; i < 100; ++i)
+                int i = 1;
+                while(true)
                 {
                     P obj = new P();
                     p.Produce("order-confirmed", new Message<Null, string>{Value = obj.createJSON(i)}, handler);
+                    System.Threading.Thread.Sleep((1000));
                 }
 
                 // wait for up to 10 seconds for any inflight messages to be delivered.
