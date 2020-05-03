@@ -22,12 +22,12 @@ namespace KafkaBananaEater
             };
             using (var consumer = new ConsumerBuilder<Ignore, string>(conf).Build())
             {
-                consumer.Subscribe("order-confirmed");
+                consumer.Subscribe("order-delivered");
                 CancellationTokenSource cts = new CancellationTokenSource();
                 Console.CancelKeyPress += (_, e) =>
                 {
                     e.Cancel = true; // prevent the process from terminating.
-                                    cts.Cancel();
+                    cts.Cancel();
                 };
 
                 try
@@ -37,7 +37,8 @@ namespace KafkaBananaEater
                         try
                         {
                             var cr = consumer.Consume(cts.Token);
-                            Console.WriteLine($"Consumed message '{cr.Message.Value}' at: '{cr.TopicPartitionOffset}'.");
+                            Console.WriteLine(
+                                $"Consumed message '{cr.Message.Value}' at: '{cr.TopicPartitionOffset}'.");
                         }
                         catch (ConsumeException e)
                         {
@@ -51,7 +52,6 @@ namespace KafkaBananaEater
                     consumer.Close();
                 }
             }
-
         }
     }
 }
