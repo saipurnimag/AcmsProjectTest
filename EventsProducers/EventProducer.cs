@@ -1,9 +1,95 @@
 using System;
 using System.Collections.Generic;
-using Confluent.Kafka;
 using System.Linq;
-namespace KafkaBananaStore
+using System.Text.Json;
+using Confluent.Kafka;
+
+namespace EventsProducers
 {
+     #region Models
+
+    public abstract class Event
+    {
+        public String OrderId { get; set; }
+        public int SellerId { get; set; }
+    }
+
+    public class OrderCreated : Event
+    {
+        public DateTime OrderDate { get; set; }
+        public DateTime PromisedShipDate { get; set; }
+        public DateTime PromisedDeliveryDate { get; set; }
+        public string CreateJson(string orderId,int sellerId)
+        {
+            DateTime date1 = new DateTime();
+            OrderCreated obj = new OrderCreated();
+            obj.OrderId = orderId;
+            obj.OrderDate = date1;
+            obj.PromisedShipDate = date1;
+            obj.PromisedDeliveryDate = date1;
+            obj.SellerId = sellerId;
+            return JsonSerializer.Serialize<OrderCreated>(obj);
+        }
+    }
+    
+   public class OrderShipped : Event
+    {
+        public DateTime ActualShipDate { get; set; }
+
+        public string createJson(string orderID, int sellerID)
+        {
+            DateTime date1 = new DateTime();
+            OrderShipped obj = new OrderShipped();
+            obj.OrderId = orderID;
+            obj.ActualShipDate = date1;
+            obj.SellerId = sellerID;
+            return JsonSerializer.Serialize<OrderShipped>(obj);
+        }
+    }
+
+   
+    public class OrderDelivered : Event
+    {
+        public DateTime ActualDeliveryDate { get; set; }
+        public string CreateJson(string orderID, int sellerId)
+        {
+            DateTime date1 = new DateTime();
+            OrderDelivered obj = new OrderDelivered();
+            obj.OrderId = orderID;
+            obj.SellerId = sellerId;
+            obj.ActualDeliveryDate = date1;
+            return JsonSerializer.Serialize<OrderDelivered>(obj);
+        }
+    }
+
+    public class OrderCancelled : Event
+    {
+        public string CancellationOrigin,CancellationReason;
+        
+        public string createJson(string orderId, int sellerId, String cancellationOrigin, String cancellationReason)
+        {
+            DateTime date1 = new DateTime();
+            OrderCancelled obj = new OrderCancelled();
+            obj.OrderId = orderId;
+            obj.SellerId = sellerId;
+            obj.CancellationOrigin = cancellationOrigin;
+            obj.CancellationReason = cancellationReason;
+            return JsonSerializer.Serialize<OrderCancelled>(obj);
+        }
+    }
+
+    public class OrderReturned : Event
+    {
+        public string createJson(string orderId, int sellerId)
+        {
+            OrderReturned obj = new OrderReturned();
+            obj.OrderId = orderId;
+            obj.SellerId = sellerId;
+            return JsonSerializer.Serialize<OrderReturned>(obj);
+        }
+    }
+    #endregion
+
     public class EventProducer
     {
         public static void ProduceEvents(int start, int stop)
@@ -38,34 +124,34 @@ namespace KafkaBananaStore
                     
                     foreach (int num in eventorder)
                     {
+                        string orderId = Guid.NewGuid().ToString();
                         string message = "";
                         switch (num)
                         {
                             case 1:
                                 //Order Created
                                 OrderCreated orderCreated = new OrderCreated();
-                                message = orderCreated.CreateJson(i, sellerId);
-                                //Console.WriteLine("Order Created Orderid: "+i+" SellerId: "+sellerId);
+                                message = orderCreated.CreateJson(orderId, sellerId);
                                 p.Produce("order-created", new Message<Null, string> {Value = message}, handler);
                                 break;
                             case 2:
                                 //Order Shipped
                                 OrderShipped orderShipped = new OrderShipped();
-                                message = orderShipped.createJson(i, sellerId);
+                                message = orderShipped.createJson(orderId, sellerId);
                                 //Console.WriteLine("Order Shipped Orderid: "+i+" SellerId: "+sellerId);
                                 p.Produce("order-shipped", new Message<Null, string> {Value = message}, handler);
                                 break;
                             case 3:
                                 //Order Delivered
                                 OrderDelivered orderDelivered = new OrderDelivered();
-                                message = orderDelivered.CreateJson(i, sellerId);
+                                message = orderDelivered.CreateJson(orderId, sellerId);
                                 //Console.WriteLine("Order Delivered Orderid: "+i+" SellerId: "+sellerId);
                                 p.Produce("order-delivered", new Message<Null, string> {Value = message}, handler);
                                 break;
                             case 4:
                                 //Order Cancelled
                                 OrderCancelled orderCancelled = new OrderCancelled();
-                                message = orderCancelled.createJson(i, sellerId, "customer",
+                                message = orderCancelled.createJson(orderId, sellerId, "customer",
                                     "The reason for cancellation");
                                 //Console.WriteLine("Order Cancelled Orderid: "+i+" SellerId: "+sellerId);
                                 p.Produce("order-cancelled", new Message<Null, string> {Value = message}, handler);
@@ -73,7 +159,7 @@ namespace KafkaBananaStore
                             case 5:
                                 //Order Returned
                                 OrderReturned orderReturned = new OrderReturned();
-                                message = orderReturned.createJson(i, sellerId);
+                                message = orderReturned.createJson(orderId, sellerId);
                                 //Console.WriteLine("Order Returned Orderid: "+i+" SellerId: "+sellerId);
                                 p.Produce("order-returned", new Message<Null, string> {Value = message}, handler);
                                 break;

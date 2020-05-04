@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using Confluent.Kafka;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace KafkaBananaStore
 {
@@ -29,7 +25,6 @@ namespace KafkaBananaStore
             obj.PromisedShipDate = date1;
             obj.PromisedDeliveryDate = date1;
             obj.SellerId = sellerId;
-            Console.WriteLine(JsonSerializer.Serialize<OrderCreated>(obj));
             return JsonSerializer.Serialize<OrderCreated>(obj);
         }
     }

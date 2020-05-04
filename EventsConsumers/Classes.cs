@@ -5,34 +5,30 @@ using Confluent.Kafka;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace KafkaBananaStore
+namespace EventsConsumers
 {
     #region Models
 
     public class OrderCreatedConsumer
     {
-        
     }
 
     public class OrderShippedConsumer
     {
-        
     }
 
     public class OrderDeliveredConsumer
     {
-        
     }
 
     public class OrderCancelledConsumer
     {
-        
     }
 
     public class OrderReturned
     {
-        
     }
+
     #endregion
-    
 }
+
