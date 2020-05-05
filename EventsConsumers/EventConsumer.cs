@@ -16,17 +16,20 @@ namespace EventsConsumers
     public class EventConsumer
     {
         private ConcurrentQueue<Confluent.Kafka.ConsumeResult<Confluent.Kafka.Ignore, string>> q;
-        public EventConsumer(ConcurrentQueue<Confluent.Kafka.ConsumeResult<Confluent.Kafka.Ignore, string>> q)
+        private int maxQueueSize;
+        public EventConsumer(ConcurrentQueue<Confluent.Kafka.ConsumeResult<Confluent.Kafka.Ignore, string>> q,
+            int maxQueueSize)
         {
             this.q = q;
+            this.maxQueueSize = maxQueueSize;
         }
 
-        public void Start()
+        public void Start(CancellationToken ct)
         {
-            Thread t1 = new Thread(()=>this.ConsumeEventsFromKafka());
-            t1.Start();
+            Thread t1 = new Thread(()=>this.ConsumeEventsFromKafka(ct));
+            t1.Start(ct);
         }
-        public void ConsumeEventsFromKafka()
+        public void ConsumeEventsFromKafka(CancellationToken ct)
         {
             ConcurrentQueue<Confluent.Kafka.ConsumeResult<Confluent.Kafka.Ignore, string>> queue = q;
             IEnumerable<string> topics = new[]
@@ -40,35 +43,24 @@ namespace EventsConsumers
             using (var consumer = new ConsumerBuilder<Ignore, string>(conf).Build())
             {
                 consumer.Subscribe(topics);
-                CancellationTokenSource cts = new CancellationTokenSource();
-                Console.CancelKeyPress += (_, e) =>
-                {
-                    e.Cancel = true; // prevent the process from terminating.
-                    cts.Cancel();
-                };
                 try
                 {
                     while (true)
                     {
-                        if (ThreadPool.ThreadCount != 0)
+                        // queue full
+                        if (queue.Count < maxQueueSize)
                         {
-                            //queue full
                             try
                             {
-                                var cr = consumer.Consume(cts.Token);
+                                ConsumeResult<Ignore, string> cr = consumer.Consume(ct);
                                 Console.WriteLine(
                                     $"Enqueuing this '{cr.Message.Value}' at: '{cr.TopicPartitionOffset}'.");
                                 queue.Enqueue(cr);
-                                continue;
                             }
                             catch (ConsumeException e)
                             {
                                 Console.WriteLine($"Error occurred :{e.Error.Reason}");
                             }
-                        }
-                        else
-                        {
-                            continue;
                         }
                     }
                 }
