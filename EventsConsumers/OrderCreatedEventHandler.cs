@@ -4,66 +4,76 @@ namespace EventsConsumers
 {
     public class OrderCreatedEventHandler
     {
-        private string JsonString;
+        private readonly string JsonString;
+
         public OrderCreatedEventHandler(string message)
         {
             JsonString = message;
         }
-        public void ProcessEvent(Object stateInfo)
+
+        public void ProcessEvent(object stateInfo)
         {
-            Console.WriteLine("Processing OrderShippedEvent: "+JsonString);   
+            Console.WriteLine("Processing OrderShippedEvent: " + JsonString);
         }
     }
 
     public class OrderShippedEventHandler
     {
-        private string JsonString;
+        private readonly string JsonString;
+
         public OrderShippedEventHandler(string message)
         {
             JsonString = message;
         }
-        public void ProcessEvent(Object stateInfo)
+
+        public void ProcessEvent(object stateInfo)
         {
-            Console.WriteLine("Processing OrderShippedEvent: "+JsonString);
+            Console.WriteLine("Processing OrderShippedEvent: " + JsonString);
         }
     }
 
     public class OrderDeliveredEventHandler
     {
-        private string JsonString;
+        private readonly string JsonString;
+
         public OrderDeliveredEventHandler(string message)
         {
             JsonString = message;
         }
-        public void ProcessEvent(Object stateInfo)
+
+        public void ProcessEvent(object stateInfo)
         {
-            Console.WriteLine("Processing OrderDeliveredEvent: "+JsonString);
+            Console.WriteLine("Processing OrderDeliveredEvent: " + JsonString);
         }
     }
 
     public class OrderCancelledEventHandler
     {
-        private string JsonString;
+        private readonly string JsonString;
+
         public OrderCancelledEventHandler(string message)
         {
             JsonString = message;
         }
-        public void ProcessEvent(Object stateInfo)
+
+        public void ProcessEvent(object stateInfo)
         {
-            Console.WriteLine("Processing OrderCancelledEvent: "+JsonString);
+            Console.WriteLine("Processing OrderCancelledEvent: " + JsonString);
         }
     }
 
     public class OrderReturnedEventHandler
     {
-        private string JsonString;
+        private readonly string JsonString;
+
         public OrderReturnedEventHandler(string message)
         {
             JsonString = message;
         }
-        public void ProcessEvent(Object stateInfo)
+
+        public void ProcessEvent(object stateInfo)
         {
-            Console.WriteLine("Processing OrderReturnedEvent: "+JsonString);
+            Console.WriteLine("Processing OrderReturnedEvent: " + JsonString);
         }
     }
 }

@@ -1,67 +1,65 @@
-using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using Confluent.Kafka;
 
 namespace EventsConsumers
 {
     public class EventDispatcher
     {
-        private ConcurrentQueue<Confluent.Kafka.ConsumeResult<Confluent.Kafka.Ignore, string>> q;
-        public EventDispatcher(ConcurrentQueue<Confluent.Kafka.ConsumeResult<Confluent.Kafka.Ignore, string>> q)
+        private readonly ConcurrentQueue<ConsumeResult<Ignore, string>> q;
+        
+        public EventDispatcher(ConcurrentQueue<ConsumeResult<Ignore, string>> q)
         {
             this.q = q;
         }
 
-        public void Start(CancellationToken ct)
+        public void Start()
         {
-            Thread thread = new Thread(() => this.ConsumeEventsFromQueue(q));
-            thread.Start(ct);
+            var thread = new Thread(() => ConsumeEventsFromQueue(q));
+            thread.Start();
         }
 
         public void ConsumeEventsFromQueue(
-            ConcurrentQueue<Confluent.Kafka.ConsumeResult<Confluent.Kafka.Ignore, string>> queue)
+            ConcurrentQueue<ConsumeResult<Ignore, string>> queue)
         {
+            //while (!queue.IsEmpty && ct.IsCancellationRequested)
             while (true)
             {
                 if (ThreadPool.ThreadCount != 0)
                 {
-                    if (queue.TryDequeue(out Confluent.Kafka.ConsumeResult<Confluent.Kafka.Ignore, string> e))
+                    if (queue.TryDequeue(out var e))
                     {
-                        string topic = e.Topic;
+                        var topic = e.Topic;
                         switch (topic)
                         {
                             case "order-created":
-                                OrderCreatedEventHandler orderCreatedEventHandler = new OrderCreatedEventHandler(e.Message.Value);
+                                var orderCreatedEventHandler = new OrderCreatedEventHandler(e.Message.Value);
                                 ThreadPool.QueueUserWorkItem(orderCreatedEventHandler.ProcessEvent);
                                 break;
                             case "order-shipped":
-                                OrderShippedEventHandler orderShippedEventHandler = new OrderShippedEventHandler(e.Message.Value);
+                                var orderShippedEventHandler = new OrderShippedEventHandler(e.Message.Value);
                                 ThreadPool.QueueUserWorkItem(orderShippedEventHandler.ProcessEvent);
                                 break;
                             case "order-delivered":
-                                OrderDeliveredEventHandler orderDeliveredEventHandler = new OrderDeliveredEventHandler(e.Message.Value);
+                                var orderDeliveredEventHandler = new OrderDeliveredEventHandler(e.Message.Value);
                                 ThreadPool.QueueUserWorkItem(orderDeliveredEventHandler.ProcessEvent);
                                 break;
                             case "order-cancelled":
-                                OrderCancelledEventHandler orderCancelledEventHandler = new OrderCancelledEventHandler(e.Message.Value);
+                                var orderCancelledEventHandler = new OrderCancelledEventHandler(e.Message.Value);
                                 ThreadPool.QueueUserWorkItem(orderCancelledEventHandler.ProcessEvent);
                                 break;
                             case "order-returned":
-                                OrderReturnedEventHandler orderReturnedEventHandler = new OrderReturnedEventHandler(e.Message.Value);
+                                var orderReturnedEventHandler = new OrderReturnedEventHandler(e.Message.Value);
                                 ThreadPool.QueueUserWorkItem(orderReturnedEventHandler.ProcessEvent);
                                 break;
                         }
                     }
-                    else
-                    {
-                        continue;
-                    }
                 }
                 else
                 {
-                    continue;
                 }
             }
+                
         }
     }
 }

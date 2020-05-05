@@ -1,23 +1,17 @@
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using Confluent.Kafka;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
-
+using Confluent.Kafka;
 
 namespace EventsConsumers
 {
     public class EventConsumer
     {
-        private ConcurrentQueue<Confluent.Kafka.ConsumeResult<Confluent.Kafka.Ignore, string>> q;
-        private int maxQueueSize;
-        public EventConsumer(ConcurrentQueue<Confluent.Kafka.ConsumeResult<Confluent.Kafka.Ignore, string>> q,
+        private readonly int maxQueueSize;
+        private readonly ConcurrentQueue<ConsumeResult<Ignore, string>> q;
+
+        public EventConsumer(ConcurrentQueue<ConsumeResult<Ignore, string>> q,
             int maxQueueSize)
         {
             this.q = q;
@@ -26,12 +20,13 @@ namespace EventsConsumers
 
         public void Start(CancellationToken ct)
         {
-            Thread t1 = new Thread(()=>this.ConsumeEventsFromKafka(ct));
-            t1.Start(ct);
+            var t1 = new Thread(() => ConsumeEventsFromKafka(ct));
+            t1.Start();
         }
+
         public void ConsumeEventsFromKafka(CancellationToken ct)
         {
-            ConcurrentQueue<Confluent.Kafka.ConsumeResult<Confluent.Kafka.Ignore, string>> queue = q;
+            var queue = q;
             IEnumerable<string> topics = new[]
                 {"order-created", "order-shipped", "order-delivered", "order-cancelled", "order-returned"};
             var conf = new ConsumerConfig
@@ -45,14 +40,12 @@ namespace EventsConsumers
                 consumer.Subscribe(topics);
                 try
                 {
-                    while (true)
-                    {
+                    while (!ct.IsCancellationRequested)
                         // queue full
                         if (queue.Count < maxQueueSize)
-                        {
                             try
                             {
-                                ConsumeResult<Ignore, string> cr = consumer.Consume(ct);
+                                var cr = consumer.Consume(ct);
                                 Console.WriteLine(
                                     $"Enqueuing this '{cr.Message.Value}' at: '{cr.TopicPartitionOffset}'.");
                                 queue.Enqueue(cr);
@@ -61,8 +54,6 @@ namespace EventsConsumers
                             {
                                 Console.WriteLine($"Error occurred :{e.Error.Reason}");
                             }
-                        }
-                    }
                 }
                 catch (OperationCanceledException)
                 {
