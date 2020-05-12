@@ -136,6 +136,7 @@ namespace EventsProducers
                                 //Order Created
                                 var orderCreated = new OrderCreated();
                                 message = orderCreated.CreateJson(orderId, sellerId);
+                                Console.WriteLine(message);
                                 p.Produce("order-created", new Message<Null, string> {Value = message}, handler);
                                 break;
                             case 2:
