@@ -1,12 +1,14 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace EventsConsumers
 {
-    public class OrderCreatedEventHandler
+    public class OrderShippedEventHandler
     {
         private readonly string JsonString;
 
-        public OrderCreatedEventHandler(string message)
+        public OrderShippedEventHandler(string message)
         {
             JsonString = message;
         }
@@ -16,12 +18,4 @@ namespace EventsConsumers
             Console.WriteLine("Processing OrderShippedEvent: " + JsonString);
         }
     }
-
-    
-
-   
-
-   
-
-    
 }
