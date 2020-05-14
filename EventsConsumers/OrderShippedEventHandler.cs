@@ -13,7 +13,7 @@ namespace EventsConsumers
             JsonString = message;
         }
 
-        public void ProcessEvent(object stateInfo)
+        public async void ProcessEvent()
         {
             Console.WriteLine("Processing OrderShippedEvent: " + JsonString);
         }

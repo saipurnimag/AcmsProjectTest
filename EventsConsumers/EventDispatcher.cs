@@ -25,8 +25,8 @@ namespace EventsConsumers
             //while (!queue.IsEmpty && ct.IsCancellationRequested)
             while (true)
             {
-                if (ThreadPool.ThreadCount != 0)
-                {
+                //if (ThreadPool.ThreadCount != 0)
+                //{
                     if (queue.TryDequeue(out var e))
                     {
                         var topic = e.Topic;
@@ -34,26 +34,26 @@ namespace EventsConsumers
                         {
                             case "order-created":
                                 var orderCreatedEventHandler = new OrderCreatedEventHandler(e.Message.Value);
-                                ThreadPool.QueueUserWorkItem(orderCreatedEventHandler.ProcessEvent);
+                                orderCreatedEventHandler.ProcessEvent();
                                 break;
                             case "order-shipped":
                                 var orderShippedEventHandler = new OrderShippedEventHandler(e.Message.Value);
-                                ThreadPool.QueueUserWorkItem(orderShippedEventHandler.ProcessEvent);
+                                orderShippedEventHandler.ProcessEvent();
                                 break;
                             case "order-delivered":
                                 var orderDeliveredEventHandler = new OrderDeliveredEventHandler(e.Message.Value);
-                                ThreadPool.QueueUserWorkItem(orderDeliveredEventHandler.ProcessEvent);
+                                orderDeliveredEventHandler.ProcessEvent();
                                 break;
                             case "order-cancelled":
                                 var orderCancelledEventHandler = new OrderCancelledEventHandler(e.Message.Value);
-                                ThreadPool.QueueUserWorkItem(orderCancelledEventHandler.ProcessEvent);
+                                orderCancelledEventHandler.ProcessEvent();
                                 break;
                             case "order-returned":
                                 var orderReturnedEventHandler = new OrderReturnedEventHandler(e.Message.Value);
-                                ThreadPool.QueueUserWorkItem(orderReturnedEventHandler.ProcessEvent);
+                                orderReturnedEventHandler.ProcessEvent();
                                 break;
                         }
-                    }
+                    //}
                 }
                 else
                 {

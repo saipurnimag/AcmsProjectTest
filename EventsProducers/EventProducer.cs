@@ -12,7 +12,7 @@ namespace EventsProducers
     public abstract class Event
     {
         public string OrderId { get; set; }
-        public int SellerId { get; set; }
+        public string SellerId { get; set; }
     }
 
     public class OrderCreated : Event
@@ -21,7 +21,7 @@ namespace EventsProducers
         public DateTime PromisedShipDate { get; set; }
         public DateTime PromisedDeliveryDate { get; set; }
 
-        public string CreateJson(string orderId, int sellerId)
+        public string CreateJson(string orderId, string sellerId)
         {
             var date1 = new DateTime();
             var obj = new OrderCreated();
@@ -38,7 +38,7 @@ namespace EventsProducers
     {
         public DateTime ActualShipDate { get; set; }
 
-        public string createJson(string orderID, int sellerID)
+        public string createJson(string orderID, string sellerID)
         {
             var date1 = new DateTime();
             var obj = new OrderShipped();
@@ -54,7 +54,7 @@ namespace EventsProducers
     {
         public DateTime ActualDeliveryDate { get; set; }
 
-        public string CreateJson(string orderID, int sellerId)
+        public string CreateJson(string orderID, string sellerId)
         {
             var date1 = new DateTime();
             var obj = new OrderDelivered();
@@ -69,7 +69,7 @@ namespace EventsProducers
     {
         public string CancellationOrigin, CancellationReason;
 
-        public string createJson(string orderId, int sellerId, string cancellationOrigin, string cancellationReason)
+        public string createJson(string orderId, string sellerId, string cancellationOrigin, string cancellationReason)
         {
             var date1 = new DateTime();
             var obj = new OrderCancelled();
@@ -83,7 +83,7 @@ namespace EventsProducers
 
     public class OrderReturned : Event
     {
-        public string createJson(string orderId, int sellerId)
+        public string createJson(string orderId, string sellerId)
         {
             var obj = new OrderReturned();
             obj.OrderId = orderId;
@@ -116,9 +116,9 @@ namespace EventsProducers
             using (var p = new ProducerBuilder<Null, string>(conf).Build())
             {
                 var random = new Random();
-                for (var i = start; i <= stop; ++i)
+                while(true)
                 {
-                    var sellerId = random.Next(start, stop + 1);
+                    string sellerId = Guid.NewGuid().ToString();
                     //seller can repeat
 
                     //userId is randomly generated
@@ -141,39 +141,41 @@ namespace EventsProducers
                                 break;
                             case 2:
                                 //Order Shipped
-                                var orderShipped = new OrderShipped();
-                                message = orderShipped.createJson(orderId, sellerId);
-                                //Console.WriteLine("Order Shipped Orderid: "+i+" SellerId: "+sellerId);
-                                p.Produce("order-shipped", new Message<Null, string> {Value = message}, handler);
+
+                                //var orderShipped = new OrderShipped();
+                                //message = orderShipped.createJson(orderId, sellerId);
+                                ////Console.WriteLine("Order Shipped Orderid: "+i+" SellerId: "+sellerId);
+                                //p.Produce("order-shipped", new Message<Null, string> {Value = message}, handler);
                                 break;
                             case 3:
                                 //Order Delivered
-                                var orderDelivered = new OrderDelivered();
-                                message = orderDelivered.CreateJson(orderId, sellerId);
-                                //Console.WriteLine("Order Delivered Orderid: "+i+" SellerId: "+sellerId);
-                                p.Produce("order-delivered", new Message<Null, string> {Value = message}, handler);
+                                //var orderDelivered = new OrderDelivered();
+                                //message = orderDelivered.CreateJson(orderId, sellerId);
+                                ////Console.WriteLine("Order Delivered Orderid: "+i+" SellerId: "+sellerId);
+                                //p.Produce("order-delivered", new Message<Null, string> {Value = message}, handler);
                                 break;
                             case 4:
                                 //Order Cancelled
-                                var orderCancelled = new OrderCancelled();
-                                message = orderCancelled.createJson(orderId, sellerId, "customer",
-                                    "The reason for cancellation");
-                                //Console.WriteLine("Order Cancelled Orderid: "+i+" SellerId: "+sellerId);
-                                p.Produce("order-cancelled", new Message<Null, string> {Value = message}, handler);
+                                //var orderCancelled = new OrderCancelled();
+                                //message = orderCancelled.createJson(orderId, sellerId, "customer",
+                                //    "The reason for cancellation");
+                                ////Console.WriteLine("Order Cancelled Orderid: "+i+" SellerId: "+sellerId);
+                                //p.Produce("order-cancelled", new Message<Null, string> {Value = message}, handler);
                                 break;
                             case 5:
                                 //Order Returned
-                                var orderReturned = new OrderReturned();
-                                message = orderReturned.createJson(orderId, sellerId);
-                                //Console.WriteLine("Order Returned Orderid: "+i+" SellerId: "+sellerId);
-                                p.Produce("order-returned", new Message<Null, string> {Value = message}, handler);
+                                //var orderReturned = new OrderReturned();
+                                //message = orderReturned.createJson(orderId, sellerId);
+                                ////Console.WriteLine("Order Returned Orderid: "+i+" SellerId: "+sellerId);
+                                //p.Produce("order-returned", new Message<Null, string> {Value = message}, handler);
                                 break;
                         }
 
-                        Thread.Sleep(250);
+                        Thread.Sleep(1000);
                     }
+                    Thread.Sleep(1000);
                 }
-
+                
                 // wait for up to 10 seconds for any inflight messages to be delivered.
                 p.Flush(TimeSpan.FromSeconds(10));
             }
