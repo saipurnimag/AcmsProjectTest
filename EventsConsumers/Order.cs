@@ -8,11 +8,13 @@ namespace EventsConsumers
 {
     class Order
     {
+        /*
         [BsonId]
         public ObjectId Id { get; set; }
+        */
+        
         public string OrderId { get; set; }
-        [BsonId]
-        public ObjectId SellerId { get; set; }
+        public String SellerId { get; set; }
         public DateTime OrderDate { get; set; }
         public DateTime PromisedShipDate { get; set; }
         public DateTime PromisedDeliveryDate { get; set; }
@@ -22,11 +24,21 @@ namespace EventsConsumers
         public string CancellationReason { get; set; }
         public bool isReturned { get; set; }
 
+       /* public Order()
+        {
+            Id = ObjectId.GenerateNewId();
+        }
+        */
     }
     class Seller
     {
         [BsonId]
         public ObjectId Id { get; set; }
         public string SellerId { get; set; }
+
+        public Seller()
+        {
+            Id = ObjectId.GenerateNewId();
+        }
     }
 }

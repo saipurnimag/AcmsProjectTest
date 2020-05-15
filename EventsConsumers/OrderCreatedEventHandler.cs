@@ -113,43 +113,49 @@ namespace EventsConsumers
 
             var findSellerFilter = Builders<Object>.Filter.Eq("SellerId", orderCreated.SellerId);
 
-            var sellerDocument = (Object)collection.Find<Object>(findSellerFilter).FirstOrDefault();
+            var sellerDocument = (Seller)collection.Find<Object>(findSellerFilter).FirstOrDefault();
 
             if (sellerDocument == null)
             {
                 Seller seller = new Seller();
-                seller.Id = new MongoDB.Bson.ObjectId(Guid.NewGuid().ToString());
                 seller.SellerId = orderCreated.SellerId;
                 collection.InsertOne(seller);
-                sellerDocument = (Object)collection.Find<Object>(findSellerFilter).FirstOrDefault();
+                sellerDocument = (Seller)collection.Find<Object>(findSellerFilter).FirstOrDefault();
             }
-            /*
+            
             var findOrderFilter = Builders<Object>.Filter.Eq("OrderId", orderCreated.OrderId);
             var orderDocument = (Order)collection.Find<Object>(findOrderFilter).FirstOrDefault();
 
             if (orderDocument == null)
             {
-                // adding a new order
-                Order order = new Order();
-                order.OrderId = orderCreated.OrderId;
-                order.OrderDate = orderCreated.OrderDate;
-                order.PromisedShipDate = orderCreated.PromisedShipDate;
-                order.PromisedDeliveryDate = orderCreated.PromisedDeliveryDate;
-                order.SellerId = sellerDocument.Id;
-                // insert
-                collection.InsertOne(order);
+                try
+                {
+                    // adding a new order
+                    Order order = new Order();
+                    order.OrderId = orderCreated.OrderId;
+                    order.OrderDate = orderCreated.OrderDate;
+                    order.PromisedShipDate = orderCreated.PromisedShipDate;
+                    order.PromisedDeliveryDate = orderCreated.PromisedDeliveryDate;
+                    order.SellerId = sellerDocument.Id.ToString();
+                    // insert
+                    collection.InsertOne(order);
+                }
+                catch(Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
             }
             else
             {
                 // update information in the order
-                var updmanyresult = await collection.UpdateManyAsync(
+                var updmanyresult = collection.UpdateMany(
                                 Builders<Object>.Filter.Eq("OrderId", orderCreated.OrderId),
                                 Builders<Object>.Update
                                 .Set("OrderDate", orderCreated.OrderDate)
                                 .Set("PromisedShipDate", orderCreated.PromisedDeliveryDate)
                                 .Set("PromisedDeliveryDate", orderCreated.PromisedDeliveryDate));           
             }
-            */
+            
         }
     }
 
