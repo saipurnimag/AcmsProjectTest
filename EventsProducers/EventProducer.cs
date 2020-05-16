@@ -9,6 +9,39 @@ namespace EventsProducers
 {
      public class EventProducer
     {
+	public  const int v = 5;
+        public static int i;
+
+        public static DateTime CreateRandomDate(Random gen, int range)
+        {
+            DateTime randomDate = DateTime.Today.AddDays(-gen.Next(range));
+            //string date = DateTime.Now.ToString("dd/MM/yyyy");
+            // var x = DateTime.Now.ToShortDateString();
+            //string dt = String.Format("{0:dd/MM/yyyy}", randomDate);
+            return randomDate;
+        }
+        public static void date()
+        {
+            DateTime[] dateTime = new DateTime[v];
+
+            DateTime[] dates = dateTime;
+
+            try
+            {
+                Random gen = new Random();
+                int range = 50 * 365;
+                for (i = 0; i < 5; i++)
+                {
+
+                    Console.WriteLine(CreateRandomDate(gen, range));
+                }
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
         public static void ProduceEvents(int start, int stop)
         {
             List<int> eventorder;
