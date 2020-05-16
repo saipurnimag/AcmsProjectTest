@@ -1,41 +1,42 @@
-﻿using MongoDB.Driver;
+using MongoDB.Driver;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Text.Json;
 
 namespace EventsConsumers
 {
-    
-    public class OrderCancelledEventHandler
+   
+    public class OrderCreatedEventHandler
     {
-        private readonly string JsonString;
         public MongoClient mongo;
-        public OrderCancelledEventHandler(MongoClient mongo,string message)
+        private readonly string JsonString;
+        public OrderCreatedEventHandler(MongoClient mongo,string message)
         {
             JsonString = message;
             this.mongo = mongo;
         }
 
-        public async void ProcessEvent()
+        public void ProcessEvent()
         {
-            OrderCancelled orderCancelled = JsonSerializer.Deserialize<OrderCancelled>(JsonString);
+            OrderCreated orderCreated = JsonSerializer.Deserialize<OrderCreated>(JsonString);
+            //step 1 : check if the seller's document is there in the 
+
             var db = mongo.GetDatabase("SellersDatabase");
 
             var collection = db.GetCollection<Object>("SellersOrders");
 
-            var findSellerFilter = Builders<Object>.Filter.Eq("SellerId", orderCancelled.SellerId);
+            var findSellerFilter = Builders<Object>.Filter.Eq("SellerId", orderCreated.SellerId);
 
             var sellerDocument = (Seller)collection.Find<Object>(findSellerFilter).FirstOrDefault();
 
             if (sellerDocument == null)
             {
                 Seller seller = new Seller();
-                seller.SellerId = orderCancelled.SellerId;
+                seller.SellerId = orderCreated.SellerId;
                 collection.InsertOne(seller);
                 sellerDocument = (Seller)collection.Find<Object>(findSellerFilter).FirstOrDefault();
             }
-            var findOrderFilter = Builders<Object>.Filter.Eq("OrderId", orderCancelled.OrderId);
+            
+            var findOrderFilter = Builders<Object>.Filter.Eq("OrderId", orderCreated.OrderId);
             var orderDocument = (Order)collection.Find<Object>(findOrderFilter).FirstOrDefault();
 
             if (orderDocument == null)
@@ -44,14 +45,15 @@ namespace EventsConsumers
                 {
                     // adding a new order
                     Order order = new Order();
-                    order.OrderId = orderCancelled.OrderId;
-                    order.CancellationOrigin = orderCancelled.CancellationOrigin;
-                    order.CancellationReason = orderCancelled.CancellationReason;
+                    order.OrderId = orderCreated.OrderId;
+                    order.OrderDate = orderCreated.OrderDate;
+                    order.PromisedShipDate = orderCreated.PromisedShipDate;
+                    order.PromisedDeliveryDate = orderCreated.PromisedDeliveryDate;
                     order.SellerId = sellerDocument.Id.ToString();
                     // insert
                     collection.InsertOne(order);
                 }
-                catch (Exception e)
+                catch(Exception e)
                 {
                     Console.WriteLine(e.Message);
                 }
@@ -60,11 +62,21 @@ namespace EventsConsumers
             {
                 // update information in the order
                 var updmanyresult = collection.UpdateMany(
-                                Builders<Object>.Filter.Eq("OrderId", orderCancelled.OrderId),
+                                Builders<Object>.Filter.Eq("OrderId", orderCreated.OrderId),
                                 Builders<Object>.Update
-                                .Set("CancellationOrigin", orderCancelled.CancellationOrigin)
-                                .Set("CancellationReason",orderCancelled.CancellationReason));
+                                .Set("OrderDate", orderCreated.OrderDate)
+                                .Set("PromisedShipDate", orderCreated.PromisedDeliveryDate)
+                                .Set("PromisedDeliveryDate", orderCreated.PromisedDeliveryDate));           
             }
+            
         }
     }
+
+    
+
+   
+
+   
+
+    
 }
