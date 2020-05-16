@@ -1,7 +1,6 @@
 using MongoDB.Driver;
 using System;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace EventsConsumers
 {
@@ -93,13 +92,12 @@ namespace EventsConsumers
     #endregion
     public class OrderCreatedEventHandler
     {
+        public MongoClient mongo;
         private readonly string JsonString;
-
-        public static MongoClient mongo = new MongoClient();
-        public OrderCreatedEventHandler(string message)
+        public OrderCreatedEventHandler(MongoClient mongo,string message)
         {
             JsonString = message;
-            
+            this.mongo = mongo;
         }
 
         public void ProcessEvent()

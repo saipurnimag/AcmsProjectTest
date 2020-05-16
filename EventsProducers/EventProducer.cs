@@ -124,56 +124,60 @@ namespace EventsProducers
                     //userId is randomly generated
                     //The events should also be generated in random order
                     //shuffle the list
-                    eventorder = eventorder.OrderBy(x => Guid.NewGuid()).ToList();
-
-                    foreach (var num in eventorder)
+                    //7 orders per seller 
+                    for (int i = 0; i < 7; ++i)
                     {
+                        eventorder = eventorder.OrderBy(x => Guid.NewGuid()).ToList();
                         var orderId = Guid.NewGuid().ToString();
-                        var message = "";
-                        switch (num)
+                        foreach (var num in eventorder)
                         {
-                            case 1:
-                                //Order Created
-                                var orderCreated = new OrderCreated();
-                                message = orderCreated.CreateJson(orderId, sellerId);
-                                Console.WriteLine(message);
-                                p.Produce("order-created", new Message<Null, string> {Value = message}, handler);
-                                break;
-                            case 2:
-                                //Order Shipped
 
-                                //var orderShipped = new OrderShipped();
-                                //message = orderShipped.createJson(orderId, sellerId);
-                                ////Console.WriteLine("Order Shipped Orderid: "+i+" SellerId: "+sellerId);
-                                //p.Produce("order-shipped", new Message<Null, string> {Value = message}, handler);
-                                break;
-                            case 3:
-                                //Order Delivered
-                                //var orderDelivered = new OrderDelivered();
-                                //message = orderDelivered.CreateJson(orderId, sellerId);
-                                ////Console.WriteLine("Order Delivered Orderid: "+i+" SellerId: "+sellerId);
-                                //p.Produce("order-delivered", new Message<Null, string> {Value = message}, handler);
-                                break;
-                            case 4:
-                                //Order Cancelled
-                                //var orderCancelled = new OrderCancelled();
-                                //message = orderCancelled.createJson(orderId, sellerId, "customer",
-                                //    "The reason for cancellation");
-                                ////Console.WriteLine("Order Cancelled Orderid: "+i+" SellerId: "+sellerId);
-                                //p.Produce("order-cancelled", new Message<Null, string> {Value = message}, handler);
-                                break;
-                            case 5:
-                                //Order Returned
-                                //var orderReturned = new OrderReturned();
-                                //message = orderReturned.createJson(orderId, sellerId);
-                                ////Console.WriteLine("Order Returned Orderid: "+i+" SellerId: "+sellerId);
-                                //p.Produce("order-returned", new Message<Null, string> {Value = message}, handler);
-                                break;
+                            var message = "";
+                            switch (num)
+                            {
+                                case 1:
+                                    //Order Created
+                                    var orderCreated = new OrderCreated();
+                                    message = orderCreated.CreateJson(orderId, sellerId);
+                                    Console.WriteLine("order-created " + message);
+                                    p.Produce("order-created", new Message<Null, string> { Value = message }, handler);
+                                    break;
+                                case 2:
+                                    //Order Shipped
+
+                                    var orderShipped = new OrderShipped();
+                                    message = orderShipped.createJson(orderId, sellerId);
+                                    Console.WriteLine("order-shipped " + message);
+                                    p.Produce("order-shipped", new Message<Null, string> { Value = message }, handler);
+                                    break;
+                                case 3:
+                                    //Order Delivered
+                                    var orderDelivered = new OrderDelivered();
+                                    message = orderDelivered.CreateJson(orderId, sellerId);
+                                    Console.WriteLine("order-delivered " + message);
+                                    p.Produce("order-delivered", new Message<Null, string> { Value = message }, handler);
+                                    break;
+                                case 4:
+                                    //Order Cancelled
+                                    var orderCancelled = new OrderCancelled();
+                                    message = orderCancelled.createJson(orderId, sellerId, "customer",
+                                        "The reason for cancellation");
+                                    Console.WriteLine("order-cancelled " + message);
+                                    p.Produce("order-cancelled", new Message<Null, string> { Value = message }, handler);
+                                    break;
+                                case 5:
+                                    //Order Returned
+                                    var orderReturned = new OrderReturned();
+                                    message = orderReturned.createJson(orderId, sellerId);
+                                    Console.WriteLine("order-returned " + message);
+                                    p.Produce("order-returned", new Message<Null, string> { Value = message }, handler);
+                                    break;
+                            }
+
+                            Thread.Sleep(1000);
                         }
-
                         Thread.Sleep(1000);
                     }
-                    Thread.Sleep(1000);
                 }
                 
                 // wait for up to 10 seconds for any inflight messages to be delivered.
