@@ -9,7 +9,7 @@ namespace EventsProducers
 {
      public class EventProducer
     {
-        public static void ProduceEvents(int start, int stop)
+        public static void ProduceEvents()
         {
             List<int> eventorder;
             eventorder = new List<int>();
