@@ -9,7 +9,7 @@ namespace EventsProducers
 {
      public class EventProducer
     {
-	public  const int v = 5;
+	    public  const int v = 5;
         public static int i;
 
         public static DateTime CreateRandomDate(Random gen, int range)
@@ -42,7 +42,7 @@ namespace EventsProducers
                 Console.WriteLine(e);
             }
         }
-        public static void ProduceEvents(int start, int stop)
+        public static void ProduceEvents()
         {
             List<int> eventorder;
             eventorder = new List<int>();
@@ -125,9 +125,6 @@ namespace EventsProducers
                         Thread.Sleep(1000);
                     }
                 }
-                
-                // wait for up to 10 seconds for any inflight messages to be delivered.
-                p.Flush(TimeSpan.FromSeconds(10));
             }
         }
     }
