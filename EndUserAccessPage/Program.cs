@@ -11,13 +11,34 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 
-namespace EndUserAccessPage
+namespace EndUserAccessPage.Main
 {
 
-    class GetModel
+   class Order
     {
+        public string OrderId { get; set; }
+        public String SellerId { get; set; }
+        public DateTime OrderDate { get; set; }
+        public DateTime PromisedShipDate { get; set; }
+        public DateTime PromisedDeliveryDate { get; set; }
+        public DateTime ActualShipDate { get; set; }
+        public DateTime ActualDeliveryDate { get; set; }
+        public string CancellationOrigin { get; set; }
+        public string CancellationReason { get; set; }
+        public bool isReturned { get; set; }
+
+    }
+
+    class Seller
+    {
+      //  [BsonId]
         public ObjectId Id { get; set; }
-        public string name { get; set; }
+        public string SellerId { get; set; }
+
+        public Seller()
+        {
+            Id = ObjectId.GenerateNewId();
+        }
     }
 
     public class Program 
@@ -25,15 +46,8 @@ namespace EndUserAccessPage
         public static void Main(string[] args)
         {
             CreateWebHostBuilder(args).Build().Run();
-            var connectionString = "mongodb://localhost";
-            var client = new MongoClient(connectionString);
-            var database = client.GetDatabase("newdb"); //newdb is the name of the database
-            var collection = database.GetCollection<GetModel>("dbcollection"); //dbcollection is the name of the collection
-            var obj = new GetModel { name = "Dhatri" };
-            collection.InsertOne(obj); //inserting into db
-            var id = obj.Id; //getting reference
 
-
+           
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>

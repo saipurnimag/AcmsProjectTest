@@ -5,12 +5,16 @@
     <UserSecretsId>6ce2c5cf-54f2-4ea0-bfe9-fd63de1225bc</UserSecretsId>
     <DockerDefaultTargetOS>Windows</DockerDefaultTargetOS>
     <DockerfileContext>.</DockerfileContext>
+    <ApplicationIcon />
+    <OutputType>Exe</OutputType>
+    <StartupObject />
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DockerDatabase" Version="0.6.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.1.2" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.7.9" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.8" />
     <PackageReference Include="MongoDB.Bson" Version="2.10.4" />
     <PackageReference Include="MongoDB.Driver" Version="2.10.4" />
     <PackageReference Include="MongoDB.Driver.Core" Version="2.10.4" />
