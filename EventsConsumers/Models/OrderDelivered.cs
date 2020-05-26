@@ -7,11 +7,10 @@ public class OrderDelivered : Event
 
     public string CreateJson(string orderID, string sellerId)
     {
-        var date1 = new DateTime();
+        
         var obj = new OrderDelivered();
         obj.OrderId = orderID;
         obj.SellerId = sellerId;
-        obj.ActualDeliveryDate = date1;
         return JsonSerializer.Serialize(obj);
     }
 }
