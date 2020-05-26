@@ -7,7 +7,6 @@ public class OrderCancelled : Event
 
     public string createJson(string orderId, string sellerId, string cancellationOrigin, string cancellationReason)
     {
-        var date1 = new DateTime();
         var obj = new OrderCancelled();
         obj.OrderId = orderId;
         obj.SellerId = sellerId;
