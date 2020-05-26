@@ -20,7 +20,7 @@ namespace core.api.Controllers
     {
         //requirement 2 in seller performance management system
         [HttpGet("{orderDate}/{id}")]
-        public string Get(BsonDateTime orderDate, string id)
+        public string Get(DateTime orderDate, string id)
         {
             string res = fetchFromDB1(orderDate, id);
             return res;
@@ -66,14 +66,14 @@ namespace core.api.Controllers
         }
        
         //fetch from db
-        private  string fetchFromDB1(BsonDateTime orderDate,string id)
+        private  string fetchFromDB1(DateTime orderDate,string id)
         {
             //to calculate seller performance metrics per day across all orders
             //id is seller id
             string sellerHealthStatus = "";
             var dbClient = new MongoClient("mongodb://127.0.0.1:27017");
-            IMongoDatabase db = dbClient.GetDatabase("newdemodb");
-            var coll = db.GetCollection<BsonDocument>("demodbcollection");
+            IMongoDatabase db = dbClient.GetDatabase("SellersDatabase");
+            var coll = db.GetCollection<BsonDocument>("SellersOrders");
             var filter1 = Builders<BsonDocument>.Filter.Eq("OrderDate", orderDate);
             var filter2 = Builders<BsonDocument>.Filter.Eq("SellerId", id);
             var documents = coll.Find(filter1 & filter2).ToList();
@@ -82,6 +82,12 @@ namespace core.api.Controllers
             long retEstimatePercentage;
             long cancEstimatePercentage;
             long totalDocuments = documents.Count();
+            //to handle null case
+            if(totalDocuments==0)
+            {
+                sellerHealthStatus = "One or both the params are incorrect";
+                return sellerHealthStatus;
+            }
             long drDocsCount=0;
             long shpDocsCount=0;
             long retDocsCount=0;
@@ -90,21 +96,41 @@ namespace core.api.Controllers
             string shippingEstimateMetric = "";
             string cancellationMetric = "";
             string returnMetric = "";
+            long c1 = 0;
+            long c2 = 0;
             foreach(BsonDocument doc in documents)
             {
-                BsonDateTime actualShipDate = (BsonDateTime)doc.GetValue("ActualShipDate");
-                BsonDateTime actualDeliveryDate = (BsonDateTime)doc.GetValue("ActualDeliveryDate");
-                var filter3 = Builders<BsonDocument>.Filter.Gte("PromisedShipDate", actualShipDate);
-                var filter4 = Builders<BsonDocument>.Filter.Gte("PromisedDeliveryDate", actualDeliveryDate);
-                var doc1 = coll.Find(filter1 & filter2 & filter3).FirstOrDefault();
-                if(doc1!=null)
+                bool ActualShipDate = doc.Contains("ActualShipDate");
+                bool ActualDeliveryDate = doc.Contains("ActualDeliveryDate");
+                DateTime actualShipDate;
+                DateTime actualDeliveryDate;
+                if (ActualShipDate)
                 {
-                    shpDocsCount++;
+                    actualShipDate = (DateTime)doc.GetValue("ActualShipDate");
+                    var filter3 = Builders<BsonDocument>.Filter.Gte("PromisedShipDate", actualShipDate);
+                    var doc1 = coll.Find(filter1 & filter2 & filter3).FirstOrDefault();
+                    if (doc1 != null)
+                    {
+                        shpDocsCount++;
+                    }
                 }
-                var doc2 = coll.Find(filter1 & filter2 & filter4).FirstOrDefault();
-                if(doc2!=null)
+                else
                 {
-                    drDocsCount++;
+                    c1++;
+                }
+                if (ActualDeliveryDate)
+                {
+                    actualDeliveryDate = (DateTime)doc.GetValue("ActualDeliveryDate");
+                    var filter4 = Builders<BsonDocument>.Filter.Gte("PromisedDeliveryDate", actualDeliveryDate);
+                    var doc2 = coll.Find(filter1 & filter2 & filter4).FirstOrDefault();
+                    if (doc2 != null)
+                    {
+                        drDocsCount++;
+                    }
+                }
+                else
+                {
+                    c2++;
                 }
                 var filter5 = Builders<BsonDocument>.Filter.Eq("isReturned", true);
                 var doc3 = coll.Find(filter1 & filter2 & filter5).FirstOrDefault();
@@ -120,8 +146,8 @@ namespace core.api.Controllers
                 }
                 
             }
-            drEstimatePercentage = (drDocsCount / totalDocuments)*100;
-            shpEstimatePercentage = (shpDocsCount / totalDocuments)*100;
+            drEstimatePercentage = (drDocsCount / (totalDocuments-c2))*100;
+            shpEstimatePercentage = (shpDocsCount / (totalDocuments-c1))*100;
             retEstimatePercentage = (retDocsCount / totalDocuments)*100;
             cancEstimatePercentage = (cancDocsCount / totalDocuments)*100;
             if(drEstimatePercentage>=98)
@@ -174,17 +200,22 @@ namespace core.api.Controllers
             //to calculate seller performance metrics per order
             String DeliveryEstimateMetricFrOrder = "";
             String shippingEstimateMetricFrOrder = "";
-            String cancellationMetricFrOrder = "false";
+            String cancellationMetricFrOrder = "False";
             String returnMetricFrOrder = "";
             String[] res = new String[4];
             var dbClient = new MongoClient("mongodb://127.0.0.1:27017");
-            IMongoDatabase db = dbClient.GetDatabase("newdemodb");
-            var coll = db.GetCollection<BsonDocument>("demodbcollection");
+            IMongoDatabase db = dbClient.GetDatabase("SellersDatabase");
+            var coll = db.GetCollection<BsonDocument>("SellersOrders");
             var alldocuments = coll.Find(new BsonDocument()).ToList();
             //every document has unique order id
             var filter = Builders<BsonDocument>.Filter.Eq("OrderId", id);
             var document = coll.Find(filter).FirstOrDefault();
-            if (document != null)
+            //if there's no doc with given orderid
+            if(document==null)
+            {
+                return new String[] {"no","document","exists","with given orderid" };
+            }
+            else if (document != null)
             {
                 BsonDateTime actualShipDate = (BsonDateTime)document.GetValue("ActualShipDate");
                 BsonDateTime actualDeliveryDate = (BsonDateTime)document.GetValue("ActualDeliveryDate");
@@ -192,31 +223,45 @@ namespace core.api.Controllers
                 var filter2 = Builders<BsonDocument>.Filter.Gte("PromisedDeliveryDate", actualDeliveryDate);
                 var filter3 = Builders<BsonDocument>.Filter.Eq("isReturned", false);
                 var doc1 = coll.Find(filter&filter1).FirstOrDefault();
-                if(doc1!=null)
+                if (!document.Contains("ActualShipDate"))
                 {
-                    shippingEstimateMetricFrOrder = "True";  
+                    shippingEstimateMetricFrOrder = "Actual Shipment Date is null";
                 }
                 else
                 {
-                    shippingEstimateMetricFrOrder = "False";
+                    if (doc1 != null)
+                    {
+                        shippingEstimateMetricFrOrder = "True";
+                    }
+                    else
+                    {
+                        shippingEstimateMetricFrOrder = "False";
+                    }
                 }
                 var doc2 = coll.Find(filter&filter2).FirstOrDefault();
-                if(doc2!=null)
+                if (!document.Contains("ActualDeliveryDate"))
                 {
-                    DeliveryEstimateMetricFrOrder = "True";
+                    DeliveryEstimateMetricFrOrder = "Actual Delivery Date is null";
                 }
                 else
                 {
-                    DeliveryEstimateMetricFrOrder = "False";
+                    if (doc2 != null)
+                    {
+                        DeliveryEstimateMetricFrOrder = "True";
+                    }
+                    else
+                    {
+                        DeliveryEstimateMetricFrOrder = "False";
+                    }
                 }
                 var doc3 = coll.Find(filter & filter3).FirstOrDefault();
                 if(doc3!=null)
                 {
-                    returnMetricFrOrder = "false";
+                    returnMetricFrOrder = "False";
                 }
                 else
                 {
-                    returnMetricFrOrder = "true";
+                    returnMetricFrOrder = "True";
                 }
             }
             res[0] = shippingEstimateMetricFrOrder;
@@ -232,28 +277,97 @@ namespace core.api.Controllers
         {
             string sellerStatus = "";
             var dbClient = new MongoClient("mongodb://127.0.0.1:27017");
-            IMongoDatabase db = dbClient.GetDatabase("newdemodb");
-            var coll = db.GetCollection<BsonDocument>("demodbcollection");
+            IMongoDatabase db = dbClient.GetDatabase("SellersDatabase");
+            var coll = db.GetCollection<BsonDocument>("SellersOrders");
             var filter1 = Builders<BsonDocument>.Filter.Eq("SellerId", id);
             var documents = coll.Find(filter1).ToList();
             long len = documents.Count();
-            long not_healthyCount = 0;
-            long healthy_Count = 0;
+            long shpMetric_Count = 0;
+            long drMetric_Count = 0;
+            long retMetric_Count = 0;
+            long cancMetric_Count = 0;
+            long sellerWithNoOrder_Count = 0;
+            long c1 = 0;
+            long c2 = 0;
             foreach(BsonDocument doc in documents)
             {
-                BsonDateTime orderDate = (BsonDateTime)doc.GetValue("OrderDate");
-                string status = fetchFromDB1(orderDate, id);
-                if(status.Equals("NOT_HEALTHY"))
+                if (!doc.Contains("OrderId"))
                 {
-                    not_healthyCount++;
+                    sellerWithNoOrder_Count++;
                 }
                 else
                 {
-                    healthy_Count++;
+                    String orderId = (String)doc.GetValue("OrderId");
+                    String[] res = new String[4];
+                    res = fetchFromDB2(orderId);
+                    if (res[0].Equals("True") && !(res[0].Equals("False")))
+                    {
+                        shpMetric_Count++;
+                    }
+                    else if(res[0].Equals("Actual Shipment Date is null"))
+                    {
+                        c1++; //case where actual shipment date hasn't been there in db yet
+                    }
+                    if (res[1].Equals("True") && !(res[1].Equals("False")))
+                    {
+                        drMetric_Count++;
+                    }
+                    else if(res[1].Equals("Actual Delivery Date is null"))
+                    {
+                        c2++; //case where actual delivery date hasn't been in db yet
+                    }
+                    if (!res[2].Equals("False"))
+                    {
+                        cancMetric_Count++;
+                    }
+                    if (!res[3].Equals("False"))
+                    {
+                        retMetric_Count++;
+                    }
                 }
-                    
             }
-            if(healthy_Count>=not_healthyCount)
+            long shippingEstimate = (shpMetric_Count /(len-c1-sellerWithNoOrder_Count)) * 100;
+            long drEstimate = (drMetric_Count / (len - c2-sellerWithNoOrder_Count)) * 100;
+            long cancEstimate = (cancMetric_Count / (len - sellerWithNoOrder_Count)) * 100;
+            long retEstimate = (retMetric_Count / (len - sellerWithNoOrder_Count)) * 100;
+           
+            String shpMetric;
+            String drMetric;
+            String cancMetric;
+            String retMetric;
+            if(shippingEstimate>=97)
+            {
+                shpMetric = "true";
+            }
+            else
+            {
+                shpMetric = "false";
+            }
+            if(drEstimate>=98)
+            {
+                drMetric = "true";
+            }
+            else
+            {
+                drMetric = "false";
+            }
+            if(cancEstimate<=2)
+            {
+                cancMetric = "false";
+            }
+            else
+            {
+                cancMetric = "true";
+            }
+            if(retEstimate<=1)
+            {
+                retMetric = "false";
+            }
+            else
+            {
+                retMetric = "true";
+            }
+            if(shpMetric.Equals("true")&&drMetric.Equals("true")&&cancMetric.Equals("false")&&retMetric.Equals("false"))
             {
                 sellerStatus = "HEALTHY";
             }
