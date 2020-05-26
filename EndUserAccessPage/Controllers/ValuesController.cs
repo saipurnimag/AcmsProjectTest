@@ -72,8 +72,8 @@ namespace core.api.Controllers
             //id is seller id
             string sellerHealthStatus = "";
             var dbClient = new MongoClient("mongodb://127.0.0.1:27017");
-            IMongoDatabase db = dbClient.GetDatabase("SellersDatabase");
-            var coll = db.GetCollection<BsonDocument>("SellersOrders");
+            IMongoDatabase db = dbClient.GetDatabase("newdemodb");
+            var coll = db.GetCollection<BsonDocument>("demodbcollection");
             var filter1 = Builders<BsonDocument>.Filter.Eq("OrderDate", orderDate);
             var filter2 = Builders<BsonDocument>.Filter.Eq("SellerId", id);
             var documents = coll.Find(filter1 & filter2).ToList();
@@ -204,8 +204,8 @@ namespace core.api.Controllers
             String returnMetricFrOrder = "";
             String[] res = new String[4];
             var dbClient = new MongoClient("mongodb://127.0.0.1:27017");
-            IMongoDatabase db = dbClient.GetDatabase("SellersDatabase");
-            var coll = db.GetCollection<BsonDocument>("SellersOrders");
+            IMongoDatabase db = dbClient.GetDatabase("newdemodb");
+            var coll = db.GetCollection<BsonDocument>("demodbcollection");
             var alldocuments = coll.Find(new BsonDocument()).ToList();
             //every document has unique order id
             var filter = Builders<BsonDocument>.Filter.Eq("OrderId", id);
@@ -217,18 +217,19 @@ namespace core.api.Controllers
             }
             else if (document != null)
             {
-                BsonDateTime actualShipDate = (BsonDateTime)document.GetValue("ActualShipDate");
-                BsonDateTime actualDeliveryDate = (BsonDateTime)document.GetValue("ActualDeliveryDate");
-                var filter1 = Builders<BsonDocument>.Filter.Gte("PromisedShipDate", actualShipDate);
-                var filter2 = Builders<BsonDocument>.Filter.Gte("PromisedDeliveryDate", actualDeliveryDate);
+              
+               
                 var filter3 = Builders<BsonDocument>.Filter.Eq("isReturned", false);
-                var doc1 = coll.Find(filter&filter1).FirstOrDefault();
+                
                 if (!document.Contains("ActualShipDate"))
                 {
                     shippingEstimateMetricFrOrder = "Actual Shipment Date is null";
                 }
                 else
                 {
+                    BsonDateTime actualShipDate = (BsonDateTime)document.GetValue("ActualShipDate");
+                    var filter1 = Builders<BsonDocument>.Filter.Gte("PromisedShipDate", actualShipDate);
+                    var doc1 = coll.Find(filter & filter1).FirstOrDefault();
                     if (doc1 != null)
                     {
                         shippingEstimateMetricFrOrder = "True";
@@ -238,13 +239,16 @@ namespace core.api.Controllers
                         shippingEstimateMetricFrOrder = "False";
                     }
                 }
-                var doc2 = coll.Find(filter&filter2).FirstOrDefault();
+                
                 if (!document.Contains("ActualDeliveryDate"))
                 {
                     DeliveryEstimateMetricFrOrder = "Actual Delivery Date is null";
                 }
                 else
                 {
+                    BsonDateTime actualDeliveryDate = (BsonDateTime)document.GetValue("ActualDeliveryDate");
+                    var filter2 = Builders<BsonDocument>.Filter.Gte("PromisedDeliveryDate", actualDeliveryDate);
+                    var doc2 = coll.Find(filter & filter2).FirstOrDefault();
                     if (doc2 != null)
                     {
                         DeliveryEstimateMetricFrOrder = "True";
@@ -277,8 +281,8 @@ namespace core.api.Controllers
         {
             string sellerStatus = "";
             var dbClient = new MongoClient("mongodb://127.0.0.1:27017");
-            IMongoDatabase db = dbClient.GetDatabase("SellersDatabase");
-            var coll = db.GetCollection<BsonDocument>("SellersOrders");
+            IMongoDatabase db = dbClient.GetDatabase("newdemodb");
+            var coll = db.GetCollection<BsonDocument>("demodbcollection");
             var filter1 = Builders<BsonDocument>.Filter.Eq("SellerId", id);
             var documents = coll.Find(filter1).ToList();
             long len = documents.Count();
