@@ -78,8 +78,8 @@ namespace core.api.Controllers
             //id is seller id
             string sellerHealthStatus = "";
             var dbClient = new MongoClient("mongodb://127.0.0.1:27017");
-            IMongoDatabase db = dbClient.GetDatabase("newdemodb");
-            var coll = db.GetCollection<BsonDocument>("demodbcollection");
+            IMongoDatabase db = dbClient.GetDatabase("SellersDatabase");
+            var coll = db.GetCollection<BsonDocument>("SellersOrders");
             var filter1 = Builders<BsonDocument>.Filter.Eq("OrderDate", orderDate);
             var filter2 = Builders<BsonDocument>.Filter.Eq("SellerId", id);
             var documents = coll.Find(filter1 & filter2).ToList();
@@ -210,8 +210,8 @@ namespace core.api.Controllers
             String returnMetricFrOrder = "";
             String[] res = new String[4];
             var dbClient = new MongoClient("mongodb://127.0.0.1:27017");
-            IMongoDatabase db = dbClient.GetDatabase("newdemodb");
-            var coll = db.GetCollection<BsonDocument>("demodbcollection");
+            IMongoDatabase db = dbClient.GetDatabase("SellersDatabase");
+            var coll = db.GetCollection<BsonDocument>("SellersOrders");
             var alldocuments = coll.Find(new BsonDocument()).ToList();
             //every document has unique order id
             var filter = Builders<BsonDocument>.Filter.Eq("OrderId", id);
@@ -287,8 +287,8 @@ namespace core.api.Controllers
         {
             string sellerStatus = "";
             var dbClient = new MongoClient("mongodb://127.0.0.1:27017");
-            IMongoDatabase db = dbClient.GetDatabase("newdemodb");
-            var coll = db.GetCollection<BsonDocument>("demodbcollection");
+            IMongoDatabase db = dbClient.GetDatabase("SellersDatabase");
+            var coll = db.GetCollection<BsonDocument>("SellersOrders");
             var filter1 = Builders<BsonDocument>.Filter.Eq("SellerId", id);
             var documents = coll.Find(filter1).ToList();
             long len = documents.Count();
