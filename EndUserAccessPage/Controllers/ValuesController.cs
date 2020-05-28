@@ -18,6 +18,8 @@ namespace core.api.Controllers
     [ApiController]
     public class ValuesController : ControllerBase
     {
+          
+        
         //requirement 2 in seller performance management system
         [HttpGet("{orderDate}/{id}")]
         public string Get(DateTime orderDate, string id)
@@ -31,6 +33,10 @@ namespace core.api.Controllers
         [HttpGet] // id is orderID
         public IEnumerable<String> Get(String id)
         {
+            if(id==null)
+            {
+                return new String[] { "REQUIREMENTS", "api/values?id=(OrderId)", "api/values/(OrderDate)/(SellerId)", "api/values/get1/(SellerId)" };
+            }
             String[] healthstatus = fetchFromDB2(id);
             ServicePointManager.SecurityProtocol = SecurityProtocolType.SystemDefault | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
             return healthstatus;
@@ -213,7 +219,7 @@ namespace core.api.Controllers
             //if there's no doc with given orderid
             if(document==null)
             {
-                return new String[] {"no","document","exists","with given orderid" };
+                return new String[] {"No","Document","Exists","with given orderid" };
             }
             else if (document != null)
             {
@@ -268,10 +274,10 @@ namespace core.api.Controllers
                     returnMetricFrOrder = "True";
                 }
             }
-            res[0] = shippingEstimateMetricFrOrder;
-            res[1] = DeliveryEstimateMetricFrOrder;
-            res[2] = cancellationMetricFrOrder;
-            res[3] = returnMetricFrOrder;
+            res[0] = "Shipping Estimate Metric  :   "+shippingEstimateMetricFrOrder;
+            res[1] = "Delivery Estimate Metric  :   "+DeliveryEstimateMetricFrOrder;
+            res[2] = "Cancellation Estimate Metric :   "+cancellationMetricFrOrder;
+            res[3] = "Return Estimate Metric   :   "+returnMetricFrOrder;
             return res;
         }
 
@@ -286,6 +292,10 @@ namespace core.api.Controllers
             var filter1 = Builders<BsonDocument>.Filter.Eq("SellerId", id);
             var documents = coll.Find(filter1).ToList();
             long len = documents.Count();
+            if(len==0)
+            {
+                return "NO SELLER WITH GIVEN SELLER ID";
+            }
             long shpMetric_Count = 0;
             long drMetric_Count = 0;
             long retMetric_Count = 0;
